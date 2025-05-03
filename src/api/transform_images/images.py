@@ -33,7 +33,7 @@ async def resize(
         log.error(f"Post with id {post_id} not found")
         raise HTTPException(status_code=404, detail="post not found")
     image_url = post.image_url
-    transformed_url = await cloudinary_service.resize(image_url, width, height, crop)
+    transformed_url = await cloudinary_service.resize(image_url, width, height, crop.value)
     transformed_image_in_db = await get_by_url(transformed_url, db)
     if transformed_image_in_db:
         return transformed_image_in_db

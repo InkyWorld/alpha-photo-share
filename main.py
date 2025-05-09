@@ -22,6 +22,7 @@ from src.db.database import sessionmanager
 from src.core import log
 from src.core import base_config
 from src.db import events
+from src import genlib
 
 
 @asynccontextmanager

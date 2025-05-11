@@ -31,9 +31,13 @@ services:
     depends_on:
       - redis
       - db
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - logs:/app/logs
-    command: ["./scripts/entrypoint_backend.sh", ]
+    command: ["./scripts/entrypoint_backend.sh"]
 
 volumes:
   postgres_data:

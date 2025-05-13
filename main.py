@@ -3,6 +3,8 @@
 from contextlib import asynccontextmanager
 import time
 from typing import AsyncGenerator
+import sys
+from unittest.mock import AsyncMock
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -22,6 +24,7 @@ from src.db.database import sessionmanager
 from src.core import log
 from src.core import base_config
 from src.db import events
+import uvicorn
 
 
 @asynccontextmanager
@@ -51,7 +54,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     async with sessionmanager.session() as db:
         await create_admin(db)
     # Отримуємо сесію Redis для FastAPILimiter
-    async with redis_manager.session() as redis:
+    async with await redis_manager.session() as redis:
         await FastAPILimiter.init(redis)
 
     yield
@@ -94,6 +97,46 @@ app.include_router(qr_code_router, prefix="/api")
 app.include_router(admin_moderator_comments_router, prefix="/api")
 app.include_router(admin_moderator_work_with_user_router, prefix="/api")
 
-if __name__ == "__main__":
-    import uvicorn
+def main():
+    """
+    Main function to run the FastAPI application.
+    This function is the entry point of the application. It initializes the FastAPI
+    application and starts the server using Uvicorn.
+    """
+    log.info("Starting FastAPI application...")
     uvicorn.run("main:app", host=base_config.start_app_config.APP_HOST, port=base_config.start_app_config.APP_PORT, reload=True)
+if __name__ == "__main__" and "pytest" not in sys.modules:
+    main()
+# Mock the lifespan function to prevent real database and Redis initialization during tests
+if "pytest" in sys.modules:
+    @asynccontextmanager
+    async def mock_lifespan(app: FastAPI):
+        yield
+
+    app.lifespan = mock_lifespan
+
+    # Mock database and Redis connections globally
+    app.dependency_overrides["get_db"] = lambda: AsyncMock()
+    app.dependency_overrides["redis_manager"] = lambda: AsyncMock()
+
+    # Mock HTTP client to prevent real HTTP requests during tests
+    app.dependency_overrides["http_client"] = lambda: AsyncMock()
+
+    # Mock the create_admin function during tests
+    from src.repository.user import create_admin
+    create_admin = AsyncMock()
+
+    # Mock the database URL during tests
+    from src.core.config.config import db_config
+    db_config.POSTGRES_HOST = "localhost"
+    db_config.POSTGRES_PORT = 5433
+    db_config.POSTGRES_DB = "test_alphadb"
+    db_config.POSTGRES_USER = "test_user"
+    db_config.POSTGRES_PASSWORD = "test_password"
+
+    # Mock FastAPILimiter initialization
+    FastAPILimiter.init = AsyncMock()
+    FastAPILimiter.close = AsyncMock()
+
+    # Mock Redis manager session
+    redis_manager.session = AsyncMock()

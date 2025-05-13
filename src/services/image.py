@@ -30,13 +30,23 @@ class CloudinaryService:
 
 
     async def upload(self, file: UploadFile, user_email: str):
-        # Завантажуємо файл до Cloudinary
         try:
+            # Read the file content
+            file_content = await file.read()
+
+            # Wrap the file content in a BytesIO object
+            from io import BytesIO
+            file_like = BytesIO(file_content)
+
+            # Upload the file to Cloudinary with a filename
             upload_result = upload(
-                file.file, folder=f"{self.public_folder}{user_email}", overwrite=True
+                file=file_like,  # Pass the file-like object
+                folder=f"{self.public_folder}{user_email}",
+                overwrite=True,
+                filename=file.filename  # Provide the original filename
             )
 
-            # Отримання `public_id`
+            # Retrieve `public_id` and `version`
             public_id = upload_result.get("public_id")
             version = upload_result.get("version")
 
@@ -46,7 +56,7 @@ class CloudinaryService:
                     detail="Failed to retrieve public_id from Cloudinary",
                 )
 
-            # Формування коректного URL
+            # Generate the correct URL
             result_url, _ = cloudinary_url(public_id, version=version)
 
             return result_url

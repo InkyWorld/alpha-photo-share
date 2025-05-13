@@ -4,7 +4,7 @@ from main import app
 
 @pytest.mark.asyncio
 async def test_signup():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(base_url="http://test") as ac:
         response = await ac.post("/api/auth/signup", json={
             "email": "test@example.com",
             "password": "password123",
@@ -16,7 +16,7 @@ async def test_signup():
 
 @pytest.mark.asyncio
 async def test_login():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(base_url="http://test") as ac:
         response = await ac.post("/api/auth/login", data={
             "username": "test@example.com",
             "password": "password123"
@@ -25,7 +25,7 @@ async def test_login():
 
 @pytest.mark.asyncio
 async def test_refresh_token():
-    async with AsyncClient(app=app, base_url="http://test") as ac:
+    async with AsyncClient(base_url="http://test") as ac:
         login_response = await ac.post("/api/auth/login", data={
             "username": "test@example.com",
             "password": "password123"

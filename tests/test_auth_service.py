@@ -7,7 +7,7 @@ async def test_password_hashing():
     hashed = auth_service.get_password_hash(password)
     assert auth_service.verify_password(password, hashed)
 
-@pytest.mark.asyncio
+@pytest.mark.asyncio 
 async def test_token_creation():
     data = {"sub": "test@example.com"}
     token = await auth_service.create_access_token(data)

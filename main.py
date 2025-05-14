@@ -77,4 +77,13 @@ app.include_router(admin_moderator_work_with_user_router, prefix="/api")
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("main:app", host=base_config.start_app_config.APP_HOST, port=base_config.start_app_config.APP_PORT, reload=True)
+    import os
+    
+    # Определяем среду выполнения
+    is_docker = os.path.exists("/.dockerenv")
+    
+    # Выбираем хост в зависимости от среды
+    host = "backend" if is_docker else "127.0.0.1"
+    
+    print(f"Запуск сервера на {host}:8000")
+    uvicorn.run("main:app", host=host, port=8000, reload=True)

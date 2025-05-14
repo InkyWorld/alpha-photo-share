@@ -9,3 +9,5 @@ __pycache__
 postgres-data
 .git
 logs
+poetry.lock
+pyproject.toml
